@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 	"newtodo"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -48,6 +49,26 @@ func (h *Handler) getAllLists(c *gin.Context) {
 }
 
 func (h *Handler) getListById(c *gin.Context) {
+	userId, ok := getUserId(c)
+	if !ok {
+		return
+	}
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
+		return
+	}
+
+	type getAllListsResponse struct {
+		Data []newtodo.TodoList `json:"data"`
+	}
+
+	list, err := h.services.TodoList.GetById(userId, id)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, list)
 
 }
 
